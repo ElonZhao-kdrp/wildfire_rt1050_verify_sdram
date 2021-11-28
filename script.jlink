@@ -1,0 +1,7 @@
+ExitOnError 1
+r
+h
+loadfile "C:\Users\zyn10101010\mcuxpresso\workspace\wildfire_rt1050_verify_sdram\Debug_wildfire\wildfire_rt1050_verify_sdram.hex" 0x60000000 
+qc
+
+qc
