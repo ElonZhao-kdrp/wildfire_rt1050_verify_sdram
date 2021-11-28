@@ -29,6 +29,8 @@ AT_NONCACHEABLE_SECTION( uint32_t EXAMPLE_SEMC_START_ADDRESS[SEMC_EXAMPLE_DATALE
 #define HELLO_BOARD_STRING "K2500 UI BOARD with Hyper flash starting up"
 #elif defined SEL_BOARD_WILDFIRE
 #define HELLO_BOARD_STRING "WILD FIRE BOARD with QSPI flash starting up"
+#elif  defined SEL_BOARD_NXPEVB_HYPERFLASH
+#define HELLO_BOARD_STRING "NXP EVK BOARD with Hyper flash starting up"
 #endif
 
 /*******************************************************************************

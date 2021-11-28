@@ -1110,7 +1110,7 @@ const uint8_t dcd_data[] = {
     0x0A,
     0x09,
 };
-#else
+#elif defined SEL_BOARD_NXPEVB_HYPERFLASH
 
 const uint8_t dcd_data[] = {
 	/* HEADER */
