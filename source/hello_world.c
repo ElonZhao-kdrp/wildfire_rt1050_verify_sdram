@@ -17,11 +17,9 @@
  * Definitions
  ******************************************************************************/
 #define EXAMPLE_SEMC SEMC
-//#define EXAMPLE_SEMC_START_ADDRESS (0x80000000U)
 #define EXAMPLE_SEMC_CLK_FREQ CLOCK_GetFreq(kCLOCK_SemcClk)
 
-#define SEMC_EXAMPLE_DATALEN (0x1000U)
-#define SEMC_EXAMPLE_WRITETIMES (1000U)
+#define SEMC_EXAMPLE_DATALEN 		800*480*2  //(0x1000U)
 
 AT_NONCACHEABLE_SECTION( uint32_t EXAMPLE_SEMC_START_ADDRESS[SEMC_EXAMPLE_DATALEN] );
 
@@ -50,8 +48,6 @@ static bool SEMC_SDRAMReadWrite8Bit(void);
  * Variables
  ******************************************************************************/
 
-uint32_t sdram_writeBuffer[SEMC_EXAMPLE_DATALEN];
-uint32_t sdram_readBuffer[SEMC_EXAMPLE_DATALEN];
 
 /*******************************************************************************
  * Code
@@ -115,6 +111,8 @@ int main(void)
 
     PRINTF("\r\n\r\n %s, compile date %s %s.\r\n", HELLO_BOARD_STRING, __DATE__, __TIME__);
 
+    PRINTF( "SDRAM Write/Read testing... Data address 0x%X; length: %d (uint32_t)\r\n", EXAMPLE_SEMC_START_ADDRESS, SEMC_EXAMPLE_DATALEN);
+
 #if 0
     if (BOARD_InitSEMC() != kStatus_Success)
     {
@@ -130,7 +128,7 @@ int main(void)
     	static uint32_t count_failed = 0;
     	bool ret, ret1, ret2;
 
-    	SDK_DelayAtLeastUs(100000, SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY);
+        SDK_DelayAtLeastUs(1000, SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY);
 
     	GPIO_PortToggle(EXAMPLE_LED_GPIO, 1u << EXAMPLE_LED_GPIO_PIN);
 
@@ -149,7 +147,7 @@ int main(void)
     	{
     		count_failed++;
     	}
-
+    	//PRINTF("%d-%d-%d\r\n", ret, ret1, ret2);
     	PRINTF("count: %d - %d\r\n", count_success, count_failed);
     }
 }
@@ -168,28 +166,21 @@ bool SEMC_SDRAMReadWrite32Bit(void)
     /* Prepare data and write to SDRAM. */
     for (index = 0; index < datalen; index++)
     {
-        sdram_writeBuffer[index] = index;
-        sdram[index] = sdram_writeBuffer[index];
+    	sdram[index] = index;
     }
 
     PRINTF_SDRAM("\r\n SEMC SDRAM Read 32 bit Data Start, Start Address 0x%x, Data Length %d !\r\n", sdram, datalen);
     /* Read data from the SDRAM. */
     for (index = 0; index < datalen; index++)
     {
-        sdram_readBuffer[index] = sdram[index];
-        //PRINTF("%d,", sdram_readBuffer[index]);
-    }
-
-    PRINTF_SDRAM("\r\n SEMC SDRAM 32 bit Data Write and Read Compare Start!\r\n");
-    /* Compare the two buffers. */
-    while (datalen--)
-    {
-        if (sdram_writeBuffer[datalen] != sdram_readBuffer[datalen])
+        if (index != sdram[index])
         {
             result = false;
             break;
         }
     }
+
+    PRINTF_SDRAM("\r\n SEMC SDRAM 32 bit Data Write and Read Compare Start!\r\n");
 
     if (!result)
     {
@@ -206,39 +197,31 @@ bool SEMC_SDRAMReadWrite32Bit(void)
 static bool SEMC_SDRAMReadWrite16Bit(void)
 {
     uint32_t index;
-    uint32_t datalen = SEMC_EXAMPLE_DATALEN;
+    uint32_t datalen = SEMC_EXAMPLE_DATALEN * 2;
     uint16_t *sdram = (uint16_t *)EXAMPLE_SEMC_START_ADDRESS; /* SDRAM start address. */
+    uint16_t count;
     bool result = true;
 
     PRINTF_SDRAM("\r\n SEMC SDRAM Memory 16 bit Write Start, Start Address 0x%x, Data Length %d !\r\n", sdram, datalen);
 
-    memset(sdram_writeBuffer, 0, sizeof(sdram_writeBuffer));
-    memset(sdram_readBuffer, 0, sizeof(sdram_readBuffer));
-
     /* Prepare data and write to SDRAM. */
-    for (index = 0; index < datalen; index++)
+    for (index = 0, count = 0; index < datalen; index++, count++)
     {
-        sdram_writeBuffer[index] = index % 0xFFFF;
-        sdram[index] = sdram_writeBuffer[index];
+    	sdram[index] = count;
     }
 
     PRINTF_SDRAM("\r\n SEMC SDRAM Read 16 bit Data Start, Start Address 0x%x, Data Length %d !\r\n", sdram, datalen);
     /* Read data from the SDRAM. */
-    for (index = 0; index < datalen; index++)
+    for (index = 0, count = 0; index < datalen; index++, count++)
     {
-        sdram_readBuffer[index] = sdram[index];
-    }
-
-    PRINTF_SDRAM("\r\n SEMC SDRAM 16 bit Data Write and Read Compare Start!\r\n");
-    /* Compare the two buffers. */
-    while (datalen--)
-    {
-        if (sdram_writeBuffer[datalen] != sdram_readBuffer[datalen])
+        if (count != sdram[index])
         {
             result = false;
             break;
         }
     }
+
+    PRINTF_SDRAM("\r\n SEMC SDRAM 16 bit Data Write and Read Compare Start!\r\n");
 
     if (!result)
     {
@@ -255,39 +238,31 @@ static bool SEMC_SDRAMReadWrite16Bit(void)
 static bool SEMC_SDRAMReadWrite8Bit(void)
 {
     uint32_t index;
-    uint32_t datalen = SEMC_EXAMPLE_DATALEN;
+    uint32_t datalen = SEMC_EXAMPLE_DATALEN*4;
     uint8_t *sdram = (uint8_t *)EXAMPLE_SEMC_START_ADDRESS; /* SDRAM start address. */
+    uint8_t count;
     bool result = true;
 
     PRINTF_SDRAM("\r\n SEMC SDRAM Memory 8 bit Write Start, Start Address 0x%x, Data Length %d !\r\n", sdram, datalen);
 
-    memset(sdram_writeBuffer, 0, sizeof(sdram_writeBuffer));
-    memset(sdram_readBuffer, 0, sizeof(sdram_readBuffer));
-
     /* Prepare data and write to SDRAM. */
-    for (index = 0; index < datalen; index++)
+    for (index = 0, count = 0; index < datalen; index++, count++)
     {
-        sdram_writeBuffer[index] = index % 0x100;
-        sdram[index] = sdram_writeBuffer[index];
+    	sdram[index] = count;
     }
 
     PRINTF_SDRAM("\r\n SEMC SDRAM Read 8 bit Data Start, Start Address 0x%x, Data Length %d !\r\n", sdram, datalen);
     /* Read data from the SDRAM. */
-    for (index = 0; index < datalen; index++)
+    for (index = 0, count = 0; index < datalen; index++, count++)
     {
-        sdram_readBuffer[index] = sdram[index];
-    }
-
-    PRINTF_SDRAM("\r\n SEMC SDRAM 8 bit Data Write and Read Compare Start!\r\n");
-    /* Compare the two buffers. */
-    while (datalen--)
-    {
-        if (sdram_writeBuffer[datalen] != sdram_readBuffer[datalen])
+        if (count != sdram[index])
         {
             result = false;
             break;
         }
     }
+
+    PRINTF_SDRAM("\r\n SEMC SDRAM 8 bit Data Write and Read Compare Start!\r\n");
 
     if (!result)
     {
